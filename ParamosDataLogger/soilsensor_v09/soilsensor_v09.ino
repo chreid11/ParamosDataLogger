@@ -8,6 +8,7 @@ v06 return string to write
 v07 +milliseconds from power on to output (millis())
     if power management succeeds this will reset every time readings are taken
 v08 +TPL5110 - call DONE_Pin for DONE to turn off power
+v09 +error logging attempt
 */
 #include "RTClib.h"
 #include <Adafruit_AHTX0.h>
@@ -26,6 +27,7 @@ const int DONE_Pin = 2; //16; //was 15 but used for SD?
 const int warmUpTime = 2500;
 const char* fileName = "datalog.csv";
 const bool isDebug = true;
+const char* cVer = "v09";
 
 void setup () {
 
@@ -35,6 +37,7 @@ void setup () {
   //----
 
 
+  String errMsg = "";
   //----
   //INITIALIZE serial port
   Serial.begin(57600);
@@ -48,9 +51,9 @@ void setup () {
   //----
   //INITIALIZE REAL TIME CLOCK
   if (! rtc.begin()) {
-    debugPrintLn("Couldn't find RTC");
+    errMsg += "No RTC;"; //debugPrintLn("No RTC");
     Serial.flush();
-    while (1) delay(10);
+    //while (1) delay(10);
   } else {
     debugPrintLn("Found RTC");
   }
@@ -59,6 +62,7 @@ void setup () {
     //debugPrintLn("RTC is NOT initialized, let's set the time!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   rtc.start();
   //----
 
@@ -67,8 +71,8 @@ void setup () {
   //INITIALIZE AHT20
   //check air temp humid sensor
   if (! aht.begin()) {
-    debugPrintLn("Could not find AHT");
-    while (1) delay(10);
+    errMsg += "No AHT;"; //debugPrintLn("No AHT");
+    //while (1) delay(10);
   } else {
     debugPrintLn("Found AHT");
   }
@@ -79,10 +83,10 @@ void setup () {
   //----
   //INITIALIZE seesaw Soil Sensor");
   if (!ss.begin(0x36)) {
-    debugPrintLn("seesaw not found");
+    errMsg += "No seesaw;"; //debugPrintLn("No seesaw");
     while(1) delay(10);
   } else {
-    debugPrintLn("seesaw Soil Sensor started, version: ");
+    debugPrintLn("seesaw Soil Sensor started");
     //debugPrintLn(ss.getVersion(), HEX);
   }
   //----
@@ -98,11 +102,20 @@ void setup () {
   }
   //----
 
+  //----
+  //check for errors, log to card if available, do nothing
+  if (errMsg != ""){
+    errMsg += cVer;
+    writeData(errMsg);
+    while(1) delay(10);
+  }
+  //----
 
   //----
   //set output pins
   pinMode(0, OUTPUT); //led
   pinMode(DONE_Pin, OUTPUT);
+  digitalWrite(DONE_Pin, LOW);
   //----
 
 
@@ -125,7 +138,6 @@ void loop () {
   writeData(strData);
   //----
 
-  debugPrintLn(strData);
   debugPrintLn("");
   if (isDebug) {delay(3000);};
 
@@ -218,8 +230,7 @@ String getMethane () {
 }
 
 void writeData (String dataString){
-  //write the data string to the SD card
-  //open file, write to file, close the file
+  //write the data string to the SD card: open file, write to file, close the file
   //https://learn.adafruit.com/adafruit-adalogger-featherwing/using-the-sd-card
   
   File dataFile = SD.open(fileName, FILE_WRITE);
@@ -234,7 +245,7 @@ void writeData (String dataString){
   }
   // if the file isn't open, pop up an error:
   else {
-    debugPrintLn("error opening datalog.txt");
+    debugPrintLn("error opening datalog.csv");
   }
 }
 
@@ -246,13 +257,16 @@ void debugPrintLn(String s){
 }
 
 void toggleOff(){
-  //toggle DONE so TPL knows to cut power!
+  //toggle DONE so TPL knows to cut power
+  //if toggle for 20 sec and it's still on, at least go to deepsleep
   //https://learn.adafruit.com/adafruit-tpl5110-power-timer-breakout/overview?view=all#usage
 
-  while (1) {
+  for (int i=0; i<10000; i++) {
     digitalWrite(DONE_Pin, HIGH);
     delay(1);
     digitalWrite(DONE_Pin, LOW);
     delay(1);
   }
+  writeData("toggled, but still on - deepsleep 50min");
+  ESP.deepSleep(30000e6); // 20e6 is 20 seconds //eventually go to sleep
 }
