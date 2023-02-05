@@ -9,8 +9,8 @@ RTC_PCF8523 rtc;
 const int warmUpTime = 5000;
 const int chipSelect = 15;
 const int blueLED = 2;
-const int redLED = 0;
-const int DONE_Pin = 15; 
+const int redLED = 2;
+const int DONE_Pin = 16;
       //12, 13, 14 do not work - needed for SD....
       //16 won't boot right
       //MAYBE 15 works???? no can't open file - also goes high??
@@ -19,6 +19,8 @@ const int DONE_Pin = 15;
       //0 is same as 2
       //??? 15 ???, would need to solder and rewire the datalogger
       //try 15 with SD commented out
+      //trying to change SDA and SCL pins to 5,2 instead of 4, 5 using 4 as DONE pin
+      //  ^^ above works
 const char* fileName = "testgpioandSD.txt";
 
 const bool lWriteToSD = false;
@@ -32,8 +34,8 @@ void setup () {
     digitalWrite(DONE_Pin, LOW);
     pinMode(redLED, OUTPUT);
     digitalWrite(redLED, LOW);
-    pinMode(blueLED, OUTPUT);
-    digitalWrite(blueLED, LOW);
+    //pinMode(blueLED, OUTPUT);
+    //digitalWrite(blueLED, LOW);
     //----
 
 
@@ -80,7 +82,7 @@ void setup () {
     */
 
     Serial.print("warming up ...");
-    delay(warmUpTime);
+    //delay(warmUpTime);
     //measure here
     Serial.println("setup end");
 
