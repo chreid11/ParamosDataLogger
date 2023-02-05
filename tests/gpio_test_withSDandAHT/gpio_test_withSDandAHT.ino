@@ -1,10 +1,12 @@
-/*test gpio voltages
+/*test gpio voltages and AHT saved to SD
 */
 #include "RTClib.h"
+#include <Adafruit_AHTX0.h>
 #include <SPI.h> //sd
 #include <SD.h> //sd
 
 RTC_PCF8523 rtc;
+Adafruit_AHTX0 aht;
 
 
 const int warmUpTime = 5000;
@@ -22,7 +24,7 @@ const int DONE_Pin = 16;
       //try 15 with SD commented out
       //trying to change SDA and SCL pins to 5,2 instead of 4, 5 using 4 as DONE pin
       //  ^^ above works
-const char* fileName = "testgpioandSD.txt";
+const char* fileName = "testgpioSDAHT.txt";
 
 const bool lWriteToSD = true;
 
@@ -33,12 +35,20 @@ void setup () {
     //set output pins
     pinMode(DONE_Pin, OUTPUT);
     digitalWrite(DONE_Pin, LOW);
+
+    Wire.pins(5, 2);
+
     pinMode(redLED, OUTPUT);
     digitalWrite(redLED, LOW);
-    //pinMode(blueLED, OUTPUT);
-    //digitalWrite(blueLED, LOW);
+    pinMode(blueLED, OUTPUT);
+    digitalWrite(blueLED, LOW);
     //----
 
+  //----
+  //Sensor warm up time?
+    Serial.print("warming up ...");
+    delay(warmUpTime);
+  //----
 
   Serial.begin(115200);
   #ifndef ESP8266
@@ -51,7 +61,7 @@ void setup () {
   //----
   //INITIALIZE REAL TIME CLOCK
   if (! rtc.begin()) {
-    Serial.println("No RTC;"); //debugPrintLn("No RTC");
+    Serial.println("No RTC;"); //Serial.println("No RTC");
     Serial.flush();
     //while (1) delay(10);
   } else {
@@ -59,12 +69,24 @@ void setup () {
   }
 
   if (! rtc.initialized() || rtc.lostPower()) {
-    //debugPrintLn("RTC is NOT initialized, let's set the time!");
+    //Serial.println("RTC is NOT initialized, let's set the time!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   rtc.start();
   //----
+
+
+  //----
+  //INITIALIZE AHT20
+  //check air temp humid sensor
+  if (! aht.begin()) {
+    Serial.println("No AHT");
+    //while (1) delay(10);
+  } else {
+    Serial.println("Found AHT");
+  }
+  //----
+  
   
 
   if (lWriteToSD){
@@ -90,11 +112,6 @@ void setup () {
 
 void loop () {
   
-  //----
-  //Sensor warm up time?
-    Serial.print("warming up ...");
-    delay(warmUpTime);
-  //----
   digitalWrite(redLED, LOW); //red led on
 
     writeData("----");
@@ -104,6 +121,8 @@ void loop () {
     writeData("DONE_Pin: ");
     String d = String(DONE_Pin);
     writeData(d);
+
+    String a = getAir();
 
     Serial.print("____low____ ");
     Serial.println(DONE_Pin);
@@ -121,12 +140,17 @@ void loop () {
     String m = String(millis());
     writeData(m);
     writeData("toggling off...");
+
+
+    t += "," + a + "," + m;
+    writeData(t);
     blinkLED(redLED, 100, 10);
 
     toggleOff();
     delay(warmUpTime);
     //measure here
 }
+
 
 String getTime () {
   //get the date and time from the Real Time Clock (RTC)
@@ -138,13 +162,34 @@ String getTime () {
   char buf1[] = "YYYY-MM-DD hh:mm:ss";
   strTime = now.toString(buf1);
 
-  //debugPrintLn("time,");
-  //debugPrintLn(strTime);
+  //Serial.println("time,");
+  Serial.println(strTime);
   
   return strTime;
-  
-  return "--";
 }
+
+
+String getAir () {
+  //read the air temperature and humidity from the AHT20 sensor
+  //https://learn.adafruit.com/adafruit-aht20/arduino
+
+  Serial.println("----air");
+
+  String strAir;
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+  strAir = String(temp.temperature) + "," + String(humidity.relative_humidity);
+
+  //Serial.println("Air Temp: "); 
+  //Serial.println(temp.temperature); 
+  //Serial.println(" degrees C");
+  //Serial.println("Humidity: "); 
+  //Serial.println(humidity.relative_humidity); 
+  //Serial.println("% rH");
+  
+  return strAir;
+}
+
 
 void writeData (String dataString){
   //write the data string to the SD card: open file, write to file, close the file
