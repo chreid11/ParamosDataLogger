@@ -32,8 +32,10 @@ const char* cVer = "v09";
 void setup () {
 
   //----
-  //Sensor warm up time?
-  delay(warmUpTime);
+  //set output pins
+  pinMode(0, OUTPUT); //led
+  pinMode(DONE_Pin, OUTPUT);
+  digitalWrite(DONE_Pin, LOW);
   //----
 
 
@@ -111,13 +113,6 @@ void setup () {
   }
   //----
 
-  //----
-  //set output pins
-  pinMode(0, OUTPUT); //led
-  pinMode(DONE_Pin, OUTPUT);
-  digitalWrite(DONE_Pin, LOW);
-  //----
-
 
   debugPrintLn("...COMPLETE SETUP");
   debugPrintLn("");
@@ -125,6 +120,11 @@ void setup () {
 
 
 void loop () {
+
+  //----
+  //Sensor warm up time?
+  delay(warmUpTime);
+  //----
   digitalWrite(0, LOW); //red led on
 
   //----
