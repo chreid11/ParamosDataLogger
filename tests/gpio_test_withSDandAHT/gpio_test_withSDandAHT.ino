@@ -72,6 +72,7 @@ void setup () {
     //Serial.println("RTC is NOT initialized, let's set the time!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   rtc.start();
   //----
 
@@ -155,7 +156,7 @@ void loop () {
 String getTime () {
   //get the date and time from the Real Time Clock (RTC)
   //https://learn.adafruit.com/adafruit-adalogger-featherwing/using-the-real-time-clock
-
+  //time drift - see pc8523.ino example
 
   String strTime;
   DateTime now = rtc.now();
