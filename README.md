@@ -13,6 +13,7 @@ A brief description of what this project does and who it's for
 
 - Add connectivity (WiFi, BLE, or LoRa, etc.)
 - Revise hardware (If not wirelessly connecting, use simpler hardware)
+- Simpler power management
 
 
 ## Hardware
