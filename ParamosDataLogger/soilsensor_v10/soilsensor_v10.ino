@@ -44,6 +44,12 @@ void setup () {
   Wire.pins(newSDA, newSCL);
   //----
 
+  
+  //----Sensor warm up time?
+  delay(warmUpTime);
+  //----
+
+
   String errMsg = "";
 
   //----INITIALIZE serial port
@@ -68,8 +74,11 @@ void setup () {
     //debugPrintLn("RTC is NOT initialized, let's set the time!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
-    //see example pfc8523.ino for time drift correction
+  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  //see example pfc8523.ino for time drift correction
   rtc.start();
+  debugPrintLn(__DATE__);
+  debugPrintLn(__TIME__);
   //----
 
 
@@ -120,9 +129,6 @@ void setup () {
 
 
 void loop () {
-  //----Sensor warm up time?
-  delay(warmUpTime);
-  //----
   digitalWrite(0, LOW); //red led on
 
   //----build output string from sensors and write to SD
