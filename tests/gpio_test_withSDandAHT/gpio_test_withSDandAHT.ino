@@ -113,7 +113,7 @@ void setup () {
 
 void loop () {
   
-  digitalWrite(redLED, LOW); //red led on
+    digitalWrite(redLED, LOW); //red led on
 
     writeData("----");
     writeData("starting loop - low ");
