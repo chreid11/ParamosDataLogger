@@ -13,6 +13,8 @@ A brief description of what this project does and who it's for
 
 - Add connectivity (WiFi, BLE, or LoRa, etc.)
 - Revise hardware (If not wirelessly connecting, use simpler hardware)
+- Better/sturdier circuit connections - proboard or custom circuit board
+- Power management - sleep, solar, other?
 
 
 ## Hardware
