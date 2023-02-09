@@ -33,4 +33,4 @@ A brief description of what this project does and who it's for
 
 ### Circuit Diagram
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+![App Screenshot](https://github.com/chreid11/ParamosDataLogger/blob/main/Docs/Paramos%20Soil-v0.1.drawio.png?raw=true)
